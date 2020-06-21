@@ -20,14 +20,14 @@ func (impl implementation) HGetAll(key string) (map[string]string, error) {
 			break
 		}
 	}
-
+	close(dataChannel)
 	return response, nil
 }
 
 func (impl implementation) hGetAll(key string, data chan map[string]string) {
 	response, err := impl.redis.HGetAll(key)
 	if err != nil {
-		response = nil
+		response = make(map[string]string)
 		impl.log.Errorf("error on hGetAll with key: %s", key)
 	}
 	data <- response

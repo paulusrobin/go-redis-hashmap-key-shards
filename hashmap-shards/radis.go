@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	Redis interface {
+	RedisHashMap interface {
 		HMSetWithExpiration(key string, value map[string]interface{}, ttl time.Duration) error
 		HMSet(key string, value map[string]interface{}) error
 		HSetWithExpiration(key, field string, value interface{}, ttl time.Duration) error
