@@ -1,9 +1,15 @@
 package hashmap_shards
 
+type sliceInterfaceData struct {
+	data []interface{}
+	err  error
+}
+
 func (impl implementation) HMGet(key string, fields ...string) ([]interface{}, error) {
 	var response = make([]interface{}, 0)
+	var err error = nil
 	var keys = impl.constructMapKey(key, fields...)
-	var dataChannel = make(chan []interface{}, len(keys))
+	var dataChannel = make(chan sliceInterfaceData, len(keys))
 
 	for k, v := range keys {
 		go impl.hmGet(k, dataChannel, v...)
@@ -11,20 +17,23 @@ func (impl implementation) HMGet(key string, fields ...string) ([]interface{}, e
 
 	for i := 0; i < len(keys); i++ {
 		select {
-		case data := <-dataChannel:
-			response = append(response, data...)
+		case x := <-dataChannel:
+			if x.err == nil {
+				response = append(response, x.data...)
+			} else {
+				err = x.err
+			}
 			break
 		}
 	}
 	close(dataChannel)
-	return response, nil
+	return response, err
 }
 
-func (impl implementation) hmGet(key string, data chan []interface{}, fields ...string) {
+func (impl implementation) hmGet(key string, data chan sliceInterfaceData, fields ...string) {
 	response, err := impl.HMGet(key, fields...)
-	if err != nil {
-		response = make([]interface{}, 0)
-		impl.log.Errorf("error on hmGet with key: %s and fields %+v", key, fields)
+	data <- sliceInterfaceData{
+		data: response,
+		err:  err,
 	}
-	data <- response
 }

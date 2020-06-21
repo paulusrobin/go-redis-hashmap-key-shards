@@ -2,9 +2,15 @@ package hashmap_shards
 
 import "fmt"
 
+type mapInterfaceData struct {
+	data map[string]string
+	err  error
+}
+
 func (impl implementation) HGetAll(key string) (map[string]string, error) {
 	var response = make(map[string]string)
-	var dataChannel = make(chan map[string]string, impl.shards)
+	var err error = nil
+	var dataChannel = make(chan mapInterfaceData, impl.shards)
 
 	for i := uint32(0); i < impl.shards; i++ {
 		keyShard := fmt.Sprintf("%s-%d", key, i)
@@ -14,21 +20,24 @@ func (impl implementation) HGetAll(key string) (map[string]string, error) {
 	for i := uint32(0); i < impl.shards; i++ {
 		select {
 		case x := <-dataChannel:
-			for key, value := range x {
-				response[key] = value
+			if x.err == nil {
+				for key, value := range x.data {
+					response[key] = value
+				}
+			} else {
+				err = x.err
 			}
 			break
 		}
 	}
 	close(dataChannel)
-	return response, nil
+	return response, err
 }
 
-func (impl implementation) hGetAll(key string, data chan map[string]string) {
+func (impl implementation) hGetAll(key string, data chan mapInterfaceData) {
 	response, err := impl.redis.HGetAll(key)
-	if err != nil {
-		response = make(map[string]string)
-		impl.log.Errorf("error on hGetAll with key: %s", key)
+	data <- mapInterfaceData{
+		data: response,
+		err:  err,
 	}
-	data <- response
 }
