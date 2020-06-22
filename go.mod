@@ -1,4 +1,4 @@
-module go-redis-hashmap-key-shards
+module github.com/paulusrobin/go-redis-hashmap-key-shards
 
 go 1.13
 
