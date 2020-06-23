@@ -31,7 +31,7 @@ func (impl implementation) HMGet(key string, fields ...string) ([]interface{}, e
 }
 
 func (impl implementation) hmGet(key string, data chan sliceInterfaceData, fields ...string) {
-	response, err := impl.HMGet(key, fields...)
+	response, err := impl.redis.HMGet(key, fields...)
 	data <- sliceInterfaceData{
 		data: response,
 		err:  err,
