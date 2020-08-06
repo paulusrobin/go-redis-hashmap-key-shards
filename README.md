@@ -41,6 +41,8 @@ if val, err := cache.HGetAll("example"); err == nil {
 # - HSet(key, field string, value interface{}) error
 # - HMGet(key string, fields ...string) ([]interface{}, error)
 # - HGetAll(key string) (map[string]string, error)
+# - Remove(key string) error
+# - Keys(pattern string) ([]string, error)
 Redis       RedisHashMap (interface)
 
 # interface Log, that implements: 
